@@ -29,7 +29,9 @@ def test_offline_engine_smoke(tmp_path: Path) -> None:
     (tmp_path / "test_sample.py").write_text("def test_ok(): assert 1 + 1 == 2\n", encoding="utf-8")
     report = ForgeEngine().run(ForgeTask("inspect", str(tmp_path)))
     assert report.status is RunStatus.SUCCEEDED
-    assert {step.tool for step in report.steps} == {"repo_tree", "git_status", "run_tests"}
+    assert {step.tool for step in report.steps} == {
+        "repo_analyze", "repo_tree", "git_status", "run_tests"
+    }
 
 
 def test_planner_json_validation() -> None:
