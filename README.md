@@ -1,87 +1,59 @@
-# AI Coding Assistant
+# Forge — Autonomous Software Engineer
 
-A small, reproducible autonomous coding-practice assistant. It selects a coding problem, shows a hint, optionally opens coding platforms, generates a trusted reference solution, validates it against test cases, stores progress, and can optionally publish the generated solution to GitHub.
+Forge is the flagship autonomous coding-agent project in this portfolio. It turns a natural-language software task into a controlled engineering workflow: inspect a repository, plan work, use typed tools, run validation, and return an auditable run report.
 
-## Architecture
+> This repository began as `Ai-Assistant`; the current codebase is being evolved into Forge rather than discarded. The historical coding-practice workflow remains available while the new `forge/` runtime becomes the primary engineering system.
 
-`Problem Bank → Generator → Validator → Tracker → GitHub Publisher`
+## What is implemented
 
-An optional OpenAI-compatible LLM can generate a candidate solution for review. LLM code is saved for inspection and is **not executed automatically**.
+- Explicit task contract and structured run reports
+- Repository-scoped workspace with path-traversal protection
+- Typed tool registry for repository listing, file reads/writes, Git status/diff, and tests
+- Shell execution with `shell=False` and credential stripping
+- Write approval gate with safe read-only default
+- Deterministic offline planner for reproducible local development
+- Optional OpenAI Responses API planner loaded only when `OPENAI_API_KEY` is present
+- Strict JSON planner output validation before tool execution
+- Unit tests covering workspace isolation, approvals, planner parsing, and end-to-end smoke execution
+- Architecture, security, references, and contribution documentation
 
 ## Quick start
 
 ```bash
-python -m venv .venv
-# Windows
-.venv\Scripts\activate
-# Linux/macOS
-source .venv/bin/activate
-
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-python main.py --once --problem two-sum
+python -m pytest -q
+python -m forge_cli --repo . --json
+python -m forge_cli "Inspect the repository and run its tests" --repo . --json
 ```
 
-The command should print a PASS result and create a generated solution plus `data/progress.jsonl`.
-
-Run all tests:
+Model-backed planning is optional:
 
 ```bash
-pytest -q
+pip install -e '.[openai]'
+set OPENAI_API_KEY=...
+python -m forge_cli "Find and fix the failing tests" --repo . --allow-writes --json
 ```
 
-Run continuously (example: every hour):
+Never commit credentials. Use a dedicated sandbox/container before giving Forge access to untrusted repositories.
 
-```bash
-python main.py --interval 3600
-```
+## Architecture
 
-The previous implementation ran its loop immediately on import and used a 5-second schedule while sleeping for 60 seconds. The v2 CLI fixes both behaviors and requires an explicit command entry point.
+`User Task → Task Contract → Planner → Tool Registry → Workspace → Validation → RunReport`
 
-## GitHub publishing
+The production roadmap extends this core to Repository Analyzer, Tool Selector, Executor, Test Runner, Debugger, Reviewer, Finalizer, Docker isolation, persistent task state, GitHub integration, human approval checkpoints, and observability.
 
-Publishing is disabled by default. Copy `.env.example` to `.env` and set:
+## Engineering quality
 
 ```text
-AI_ASSISTANT_AUTO_PUBLISH=true
-GITHUB_REPO=gourav-ai-engineer/Ai-Assistant
-GITHUB_TOKEN=your_token
-GITHUB_BRANCH=main
+forge/                  core runtime
+src/                    historical coding-practice modules
+scripts/                operational helpers (as added)
+tests/                  automated tests
+docs/                   architecture + research notes
+.github/workflows/      CI
 ```
 
-The token needs permission to create repository contents. The application uses the GitHub Contents API rather than shelling out to `git add/commit/push`, which makes failures visible and avoids arbitrary shell command execution.
+CI compiles the repository and runs the complete test suite plus the existing coding-assistant smoke test.
 
-## Optional LLM generation
+## References
 
-Set `OPENAI_API_KEY` and the optional `OPENAI_BASE_URL` / `OPENAI_MODEL` values. The assistant will save the model-generated candidate under `generated/` while continuing to use the trusted built-in reference implementation as the validation oracle.
-
-## Safe defaults
-
-`AI_ASSISTANT_OPEN_PLATFORMS=false` and `AI_ASSISTANT_AUTO_PUBLISH=false` by default. Nothing opens in your browser and nothing is pushed remotely unless you explicitly enable it.
-
-## Project structure
-
-```text
-.
-├── main.py
-├── requirements.txt
-├── .env.example
-├── src/
-│   ├── automation.py
-│   ├── config.py
-│   ├── github_worker.py
-│   ├── llm.py
-│   ├── notifier.py
-│   ├── problems.py
-│   ├── service.py
-│   ├── solver.py
-│   ├── tracker.py
-│   └── validator.py
-├── tests/
-├── data/
-└── generated/
-```
-
-## Verification
-
-GitHub Actions runs dependency installation, Python compilation, the complete pytest suite, and a `two-sum` end-to-end smoke test on pushes and pull requests.
+See `docs/REFERENCES.md` for the public projects and official documentation used as architectural inspiration. No reference implementation is copied verbatim.
