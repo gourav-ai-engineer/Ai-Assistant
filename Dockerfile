@@ -1,12 +1,6 @@
 FROM python:3.12-slim
-
-WORKDIR /app
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-CMD ["python", "main.py", "--once"]
+WORKDIR /workspace
+COPY . /workspace
+RUN pip install --no-cache-dir -r requirements.txt && pip install --no-cache-dir -e .
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+ENTRYPOINT ["python", "-m", "forge_cli"]
