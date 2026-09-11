@@ -1,16 +1,17 @@
-import json
-from datetime import datetime
+"""Backward-compatible progress tracking wrapper."""
 
-FILE = "progress.json"
+from pathlib import Path
 
-def track(problem):
+from src.tracker import ProgressTracker
 
-    today = str(datetime.now().date())
 
-    data = {
-        "date": today,
-        "problem": problem["name"]
-    }
-
-    with open(FILE, "a") as f:
-        f.write(json.dumps(data) + "\n")
+def track(problem) -> None:
+    name = problem["name"] if isinstance(problem, dict) else problem.name
+    slug = name.lower().replace(" ", "-")
+    ProgressTracker(Path("data/progress.jsonl")).record(
+        problem=name,
+        slug=slug,
+        passed=True,
+        published=False,
+        source="legacy-wrapper",
+    )
