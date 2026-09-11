@@ -4,10 +4,6 @@ from .types import ToolCall, ToolResult
 from .workspace import Workspace
 
 
-READ_ONLY = {"repo_tree", "read_file", "git_status", "git_diff", "run_tests"}
-WRITE_TOOLS = {"write_file"}
-
-
 class ToolRegistry:
     def __init__(self, workspace: Workspace, *, allow_writes: bool = False) -> None:
         self.workspace = workspace
@@ -29,8 +25,12 @@ class ToolRegistry:
                     ),
                 )
             if call.name == "git_status":
+                if not (self.workspace.root / ".git").exists():
+                    return ToolResult(True, "Not a Git repository; Git status unavailable.")
                 return self.workspace.run(["git", "status", "--short"])
             if call.name == "git_diff":
+                if not (self.workspace.root / ".git").exists():
+                    return ToolResult(True, "Not a Git repository; Git diff unavailable.")
                 return self.workspace.run(["git", "diff", "--", "."])
             if call.name == "run_tests":
                 return self._run_tests()

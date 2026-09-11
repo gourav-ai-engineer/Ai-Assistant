@@ -17,11 +17,12 @@ def test_workspace_blocks_path_escape(tmp_path: Path) -> None:
 
 
 def test_write_requires_explicit_approval(tmp_path: Path) -> None:
-    ws = Workspace(tmp_path)
-    registry_task = ForgeTask("write", str(tmp_path), require_approval_for_write=True)
-    report = ForgeEngine().run(registry_task, allow_writes=False)
-    assert report.status is RunStatus.SUCCEEDED
-    assert all(step.tool != "write_file" for step in report.steps)
+    from forge.tools import ToolRegistry
+
+    registry = ToolRegistry(Workspace(tmp_path), allow_writes=False)
+    result = registry.execute(ToolCall("write_file", {"path": "x.txt", "content": "secret"}))
+    assert not result.ok
+    assert not (tmp_path / "x.txt").exists()
 
 
 def test_offline_engine_smoke(tmp_path: Path) -> None:
@@ -39,5 +40,6 @@ def test_planner_json_validation() -> None:
 
 def test_unknown_tool_fails(tmp_path: Path) -> None:
     from forge.tools import ToolRegistry
+
     result = ToolRegistry(Workspace(tmp_path)).execute(ToolCall("nope"))
     assert not result.ok
