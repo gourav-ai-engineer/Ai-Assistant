@@ -1,9 +1,5 @@
-from plyer import notification
+"""Backward-compatible notification wrapper."""
 
-def notify(problem):
+from src.notifier import notify
 
-    notification.notify(
-        title="AI Coding Assistant",
-        message=f"Today's problem: {problem['name']}\nHint: {problem['hint']}",
-        timeout=15
-    )
+__all__ = ["notify"]
