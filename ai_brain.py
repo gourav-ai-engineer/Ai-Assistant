@@ -1,39 +1,15 @@
-import random
+"""Backward-compatible root imports for the v2 assistant."""
 
-# list of problems
-easy_problems = [
-    {
-        "name": "Two Sum",
-        "hint": "Use a dictionary to store visited numbers and check complement."
-    },
-    {
-        "name": "Palindrome Number",
-        "hint": "Reverse the number and compare with original."
-    },
-    {
-        "name": "Valid Parentheses",
-        "hint": "Use stack data structure."
-    },
-    {
-        "name": "Maximum Subarray",
-        "hint": "Use Kadane's algorithm."
-    }
-]
+from src.problems import PROBLEMS, Problem, get_problem
+from src.service import choose_problem
+from src.solver import generate_reference_solution
 
-# function to select problem
-def select_problem():
-    return random.choice(easy_problems)
 
-# function to generate starter code
-def generate_code(problem):
+def select_problem() -> Problem:
+    return choose_problem()
 
-    code = f'''
-# Problem: {problem["name"]}
 
-def solution():
-    print("Solving problem: {problem["name"]}")
+def generate_code(problem: Problem) -> str:
+    return generate_reference_solution(problem).code
 
-solution()
-'''
-
-    return code
+__all__ = ["PROBLEMS", "Problem", "get_problem", "select_problem", "generate_code"]
