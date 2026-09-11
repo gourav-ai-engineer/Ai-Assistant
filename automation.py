@@ -1,9 +1,5 @@
-import webbrowser
+"""Backward-compatible wrapper for browser automation."""
 
-def open_platforms():
+from src.automation import PLATFORMS, open_platforms
 
-    webbrowser.open("https://leetcode.com/problemset/?difficulty=EASY")
-
-    webbrowser.open("https://www.hackerrank.com/dashboard")
-
-    webbrowser.open("https://github.com")
+__all__ = ["PLATFORMS", "open_platforms"]
