@@ -1,34 +1,16 @@
-import os
-import random
-from datetime import datetime
+"""Legacy entrypoint kept safe: no automatic git operations on import/run."""
 
-# motivational lines
-messages = [
-    "Practicing data structures",
-    "Improving problem solving skills",
-    "Working on AI assistant project",
-    "Learning machine learning",
-    "Improving coding consistency",
-    "Daily coding practice"
-]
+from src.github_worker import GitHubPublisher
 
-def make_commit():
 
-    today = datetime.now().strftime("%Y-%m-%d")
-    
-    filename = f"daily_progress_{today}.txt"
-    
-    message = random.choice(messages)
-    
-    # create or append file
-    with open(filename, "a") as f:
-        f.write(f"{today}: {message}\n")
-    
-    # git commands
-    os.system("git add .")
-    os.system(f'git commit -m "AI Assistant auto commit {today}"')
-    os.system("git push")
-    
-    print("GitHub auto commit done")
+def make_commit(code: str) -> str:
+    result = GitHubPublisher(repo=None, token=None).publish(
+        slug="manual-solution",
+        source=code,
+        enabled=False,
+    )
+    return result.location
 
-make_commit()
+
+if __name__ == "__main__":
+    print("Automatic git pushing is disabled by design. Use `python main.py --once` instead.")
