@@ -1,13 +1,9 @@
-import os
-from datetime import datetime
+"""Backward-compatible publishing wrapper."""
 
-def commit_code(code):
+from src.github_worker import GitHubPublisher, PublishResult
 
-    filename = f"daily_{datetime.now().date()}.py"
 
-    with open(filename, "w") as f:
-        f.write(code)
-
-    os.system("git add .")
-    os.system(f'git commit -m "AI Assistant commit {datetime.now().date()}"')
-    os.system("git push")
+def commit_code(code: str) -> PublishResult:
+    """Store code locally; remote publishing is opt-in through the v2 service."""
+    publisher = GitHubPublisher(repo=None, token=None)
+    return publisher.publish(slug="legacy-solution", source=code, enabled=False)
