@@ -16,12 +16,17 @@ jobs:
           python-version: "3.12"
           cache: pip
       - name: Install dependencies
-        run: python -m pip install --upgrade pip && pip install -r requirements.txt && pip install -e .
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e ".[dev]"
       - name: Compile Python files
         run: python -m compileall -q forge src main.py forge_cli.py
+      - name: Lint Forge
+        run: ruff check forge tests forge_cli.py
       - name: Run tests
         run: pytest -q
       - name: Forge offline smoke test
-        run: python -m forge_cli "Inspect this repository and run its tests" --repo . --json
+        run: python forge_cli.py "Inspect this repository and run its tests" --repo . --json
       - name: Existing assistant smoke test
         run: python main.py --once --problem two-sum

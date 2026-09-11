@@ -3,108 +3,90 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AI Coding Assistant Demo</title>
+  <title>Forge — Autonomous AI Software Engineer</title>
   <style>
-    :root { font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif; color-scheme: dark; }
-    body { margin:0; min-height:100vh; background:#0b1020; color:#e8ecf8; }
-    .wrap { max-width:1000px; margin:auto; padding:32px 20px 60px; }
-    h1 { margin:0 0 8px; font-size:32px; }
-    .sub { color:#9aa6c2; margin-bottom:24px; }
-    .grid { display:grid; grid-template-columns:1fr 1.4fr; gap:18px; }
-    .card { background:#131a2e; border:1px solid #273250; border-radius:16px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,.2); }
-    label { display:block; margin:12px 0 8px; color:#b9c3db; font-size:14px; }
-    select, button { width:100%; border-radius:10px; border:1px solid #35415f; padding:12px; background:#0e1528; color:#fff; }
-    button { margin-top:14px; cursor:pointer; background:#5568ff; border-color:#6878ff; font-weight:700; }
-    button:hover { filter:brightness(1.08); }
-    pre { white-space:pre-wrap; overflow:auto; background:#0a0f1d; border:1px solid #273250; border-radius:12px; padding:14px; min-height:180px; }
-    .metric { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #273250; }
+    :root { font-family: Inter, ui-sans-serif, system-ui, sans-serif; color-scheme: dark; }
+    body { margin: 0; min-height: 100vh; background: #080b12; color: #eef2ff; }
+    .wrap { max-width: 1120px; margin: auto; padding: 36px 20px 70px; }
+    .eyebrow { color: #8ea0c5; letter-spacing: .12em; text-transform: uppercase; font-size: 12px; font-weight: 700; }
+    h1 { margin: 8px 0; font-size: 42px; letter-spacing: -.03em; }
+    .sub { color: #9ca8bf; max-width: 760px; line-height: 1.6; }
+    .grid { display: grid; grid-template-columns: .9fr 1.5fr; gap: 18px; margin-top: 28px; }
+    .card { background: #111725; border: 1px solid #25304a; border-radius: 18px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+    h2, h3 { margin-top: 0; }
+    label { display:block; color:#a9b6d0; font-size:13px; margin:14px 0 8px; }
+    textarea, select, button { width:100%; box-sizing:border-box; border-radius:11px; border:1px solid #35415e; background:#0b101c; color:#f3f6ff; padding:12px; font:inherit; }
+    textarea { min-height: 150px; resize: vertical; }
+    button { margin-top: 12px; font-weight: 750; cursor:pointer; background:#5f6fff; border-color:#7481ff; }
+    .flow { display:grid; gap:8px; margin-top:18px; }
+    .step { display:flex; justify-content:space-between; gap:12px; padding:10px 12px; border-radius:10px; background:#0b101c; border:1px solid #222c43; font-size:13px; }
+    .status { color:#6fe39e; font-weight:700; }
+    .metric { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #202a40; }
     .metric:last-child { border-bottom:0; }
-    .pass { color:#5ee89a; }
-    .fail { color:#ff7b8d; }
-    .note { margin-top:12px; color:#8f9bb7; font-size:13px; line-height:1.5; }
-    @media (max-width:800px) { .grid { grid-template-columns:1fr; } }
+    pre { margin:10px 0 0; padding:14px; border-radius:12px; background:#080c15; border:1px solid #222b40; white-space:pre-wrap; overflow:auto; min-height:130px; color:#cbd5ee; }
+    .note { margin-top:12px; color:#7e8ca8; font-size:12px; line-height:1.5; }
+    @media (max-width:850px) { .grid { grid-template-columns:1fr; } h1 { font-size:34px; } }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>AI Coding Assistant</h1>
-    <div class="sub">Browser demo of the assistant workflow: select a problem → generate a solution → validate it → inspect results.</div>
+    <div class="eyebrow">Portfolio Project 01</div>
+    <h1>Forge — Autonomous AI Software Engineer</h1>
+    <div class="sub">A safe walkthrough of the same inspect → plan → execute → test → review loop implemented by the Python runtime.</div>
+
     <div class="grid">
       <section class="card">
-        <h2>Run a problem</h2>
-        <label for="problem">Problem</label>
-        <select id="problem">
-          <option value="two-sum">Two Sum</option>
-          <option value="valid-parentheses">Valid Parentheses</option>
-          <option value="palindrome-number">Palindrome Number</option>
-          <option value="maximum-subarray">Maximum Subarray</option>
-        </select>
-        <button id="run">Generate + Validate</button>
-        <div class="note">This public demo is a self-contained browser simulation of the same reference-problem workflow. The repository's Python service remains the authoritative implementation.</div>
+        <h2>Start a task</h2>
+        <label for="task">Engineering request</label>
+        <textarea id="task">Inspect the repository, run its tests, and report the result.</textarea>
+        <label for="mode">Planner</label>
+        <select id="mode"><option>Offline deterministic</option><option>Model-backed (local runtime)</option></select>
+        <button id="run">Run Forge workflow</button>
+        <div class="flow" id="flow">
+          <div class="step"><span>Repository analysis</span><span>READY</span></div>
+          <div class="step"><span>Tool planning</span><span>READY</span></div>
+          <div class="step"><span>Execution</span><span>READY</span></div>
+          <div class="step"><span>Validation</span><span>READY</span></div>
+          <div class="step"><span>Final report</span><span>READY</span></div>
+        </div>
+        <div class="note">This hosted page is a deterministic product walkthrough. It does not execute arbitrary visitor code or expose an API key.</div>
       </section>
+
       <section class="card">
-        <h2>Results</h2>
+        <h2>Execution report</h2>
         <div class="metric"><span>Status</span><strong id="status">Ready</strong></div>
-        <div class="metric"><span>Problem</span><strong id="name">—</strong></div>
-        <div class="metric"><span>Passed tests</span><strong id="passed">—</strong></div>
-        <div class="metric"><span>Source</span><strong id="source">Reference solution</strong></div>
-        <h3>Generated solution</h3>
-        <pre id="code">Select a problem and run validation.</pre>
-        <h3>Test output</h3>
-        <pre id="tests">No run yet.</pre>
+        <div class="metric"><span>Task</span><strong id="taskLabel">—</strong></div>
+        <div class="metric"><span>Tool calls</span><strong id="calls">—</strong></div>
+        <div class="metric"><span>Write gate</span><strong>OFF by default</strong></div>
+        <h3>Planner output</h3>
+        <pre id="plan">No run yet.</pre>
+        <h3>Validation</h3>
+        <pre id="validation">No run yet.</pre>
       </section>
     </div>
   </div>
 <script>
-const problems = {
-  'two-sum': {
-    name:'Two Sum',
-    code:`def two_sum(nums, target):\n    seen = {}\n    for i, value in enumerate(nums):\n        need = target - value\n        if need in seen:\n            return [seen[need], i]\n        seen[value] = i\n    return []`,
-    tests:[
-      ['[2,7,11,15], 9','[0,1]',true],
-      ['[3,2,4], 6','[1,2]',true],
-      ['[3,3], 6','[0,1]',true]
-    ]
-  },
-  'valid-parentheses': {
-    name:'Valid Parentheses',
-    code:`def is_valid(s):\n    pairs = {')':'(', ']':'[', '}':'{'}\n    stack = []\n    for ch in s:\n        if ch in '([{':\n            stack.append(ch)\n        elif not stack or stack.pop() != pairs[ch]:\n            return False\n    return not stack`,
-    tests:[
-      ['"()"','True',true],
-      ['"()[]{}"','True',true],
-      ['"(]"','False',true]
-    ]
-  },
-  'palindrome-number': {
-    name:'Palindrome Number',
-    code:`def is_palindrome(x):\n    if x < 0:\n        return False\n    original, reverse = x, 0\n    while x:\n        reverse = reverse * 10 + x % 10\n        x //= 10\n    return original == reverse`,
-    tests:[
-      ['121','True',true],
-      ['-121','False',true],
-      ['10','False',true]
-    ]
-  },
-  'maximum-subarray': {
-    name:'Maximum Subarray',
-    code:`def max_subarray(nums):\n    best = current = nums[0]\n    for value in nums[1:]:\n        current = max(value, current + value)\n        best = max(best, current)\n    return best`,
-    tests:[
-      ['[-2,1,-3,4,-1,2,1,-5,4]','6',true],
-      ['[1]','1',true],
-      ['[5,4,-1,7,8]','23',true]
-    ]
-  }
+const steps = [
+  ['Repository analysis','repo_analyze'],
+  ['Tool planning','planner'],
+  ['Execution','tool_registry'],
+  ['Validation','run_tests'],
+  ['Final report','state']
+];
+const flow = document.getElementById('flow');
+const setFlow = state => {
+  flow.innerHTML = steps.map(([label,key]) => `<div class="step"><span>${label}</span><span>${state[key] || 'READY'}</span></div>`).join('');
 };
-
-const $ = id => document.getElementById(id);
-$('run').addEventListener('click', () => {
-  const p = problems[$('problem').value];
-  $('status').textContent = 'PASS';
-  $('status').className = 'pass';
-  $('name').textContent = p.name;
-  $('passed').textContent = `${p.tests.length}/${p.tests.length}`;
-  $('source').textContent = 'Reference solution';
-  $('code').textContent = p.code;
-  $('tests').textContent = p.tests.map((t,i) => `Test ${i+1}: ${t[0]} → expected ${t[1]}   ✓`).join('\n');
+document.getElementById('run').addEventListener('click', () => {
+  const task = document.getElementById('task').value.trim() || 'Inspect this repository.';
+  const planner = document.getElementById('mode').value;
+  document.getElementById('status').textContent = 'SUCCEEDED';
+  document.getElementById('status').className = 'status';
+  document.getElementById('taskLabel').textContent = task.length > 58 ? task.slice(0,55) + '…' : task;
+  document.getElementById('calls').textContent = '4 baseline + bounded plan';
+  setFlow({repo_analyze:'OK',planner:'OK',tool_registry:'OK',run_tests:'PASS',state:'SAVED'});
+  document.getElementById('plan').textContent = JSON.stringify({workflow:['inspect','plan','act','validate','review'], planner, write_gate:false}, null, 2);
+  document.getElementById('validation').textContent = 'Baseline tests: PASS\nFinal validation: PASS\nWorkspace boundary: ENFORCED\nCredential filtering: ENABLED';
 });
 </script>
 </body>

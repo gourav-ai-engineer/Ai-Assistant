@@ -1,59 +1,96 @@
-# Forge — Autonomous Software Engineer
+# Forge — Autonomous AI Software Engineer
 
-Forge is the flagship autonomous coding-agent project in this portfolio. It turns a natural-language software task into a controlled engineering workflow: inspect a repository, plan work, use typed tools, run validation, and return an auditable run report.
+Forge is a bounded autonomous software-engineering runtime that lets an AI inspect a repository, plan work, call typed tools, validate changes, recover from failures, and produce a persistent execution report.
 
-> This repository began as `Ai-Assistant`; the current codebase is being evolved into Forge rather than discarded. The historical coding-practice workflow remains available while the new `forge/` runtime becomes the primary engineering system.
+## Project status
 
-## What is implemented
-
-- Explicit task contract and structured run reports
-- Repository-scoped workspace with path-traversal protection
-- Typed tool registry for repository listing, file reads/writes, Git status/diff, and tests
-- Shell execution with `shell=False` and credential stripping
-- Write approval gate with safe read-only default
-- Deterministic offline planner for reproducible local development
-- Optional OpenAI Responses API planner loaded only when `OPENAI_API_KEY` is present
-- Strict JSON planner output validation before tool execution
-- Unit tests covering workspace isolation, approvals, planner parsing, and end-to-end smoke execution
-- Architecture, security, references, and contribution documentation
-
-## Quick start
-
-```bash
-python -m pytest -q
-python -m forge_cli --repo . --json
-python -m forge_cli "Inspect the repository and run its tests" --repo . --json
-```
-
-Model-backed planning is optional:
-
-```bash
-pip install -e '.[openai]'
-set OPENAI_API_KEY=...
-python -m forge_cli "Find and fix the failing tests" --repo . --allow-writes --json
-```
-
-Never commit credentials. Use a dedicated sandbox/container before giving Forge access to untrusted repositories.
+The deterministic Forge runtime is implemented and verified by GitHub Actions. Model-backed planning is implemented against the OpenAI Responses API as an optional provider. The public browser demo is a safe deterministic simulation and does not execute arbitrary visitor code.
 
 ## Architecture
 
-`User Task → Task Contract → Planner → Tool Registry → Workspace → Validation → RunReport`
+`Task → Baseline Inspection → Planner → Tool Registry → Executor → Tests → Recovery → Diff Review → Final Report`
 
-The production roadmap extends this core to Repository Analyzer, Tool Selector, Executor, Test Runner, Debugger, Reviewer, Finalizer, Docker isolation, persistent task state, GitHub integration, human approval checkpoints, and observability.
-
-## Engineering quality
+Core modules:
 
 ```text
-forge/                  core runtime
-src/                    historical coding-practice modules
-scripts/                operational helpers (as added)
-tests/                  automated tests
-docs/                   architecture + research notes
-.github/workflows/      CI
+forge/
+├── analyzer.py      repository language/entry-point analysis
+├── engine.py        bounded autonomous execution loop
+├── planner.py       planner protocol + offline deterministic planner
+├── providers.py     optional OpenAI Responses API planner
+├── server.py        local read-only inspection HTTP API
+├── state.py         persistent run reports
+├── tools.py         typed and guarded tool registry
+├── types.py         task/report/tool data models
+└── workspace.py     repository boundary and safe file access
 ```
 
-CI compiles the repository and runs the complete test suite plus the existing coding-assistant smoke test.
+## Capabilities
 
-## References
+- Natural-language engineering tasks
+- Repository tree and structure analysis
+- Text search and safe file reads/writes
+- Git status, diff, and guarded commits
+- Test execution
+- Bounded multi-round planning and recovery
+- Persistent task/run state
+- Approval-gated mutations
+- Workspace path traversal protection
+- Credential filtering for subprocesses
+- JSON execution reports
+- Optional OpenAI model planning
+- Docker/Compose support
+- CI verification
 
-See `docs/REFERENCES.md` for the public projects and official documentation used as architectural inspiration. No reference implementation is copied verbatim.
+## Run Forge locally
+
+Safe offline mode:
+
+```bash
+python -m pip install -e ".[dev]"
+python forge_cli.py "Inspect this repository and run its tests" --repo . --json
+```
+
+Model-backed mode:
+
+```bash
+python -m pip install -e ".[openai,dev]"
+# PowerShell
+$env:OPENAI_API_KEY = "..."
+python forge_cli.py "Inspect the repository, diagnose the failing test, and propose a minimal fix" --repo ./sample-repo --json
+```
+
+For mutation tasks, explicitly add `--allow-writes`. The default is read-only.
+
+The default model is `gpt-5.6-luna`; override it with `FORGE_MODEL`.
+
+## HTTP API
+
+```bash
+python forge_cli.py --serve --repo . --port 8787
+```
+
+The HTTP surface is intentionally read-only. Mutating operations remain in the CLI/runtime and require explicit authorization.
+
+## Testing
+
+```bash
+pytest -q
+ruff check forge tests forge_cli.py
+```
+
+GitHub Actions additionally compiles the Forge package and runs both a Forge offline smoke test and the existing AI Assistant smoke test.
+
+## Security
+
+Forge treats repository content and tool output as untrusted data. All paths are resolved against the selected workspace, writes require an explicit gate, commits are guarded, and common credentials are stripped from child-process environments.
+
+See `SECURITY.md` and `docs/OPERATOR_RUNBOOK.md` for operating boundaries.
+
+## Reference implementation
+
+The architecture was informed by publicly available autonomous coding-agent patterns, including `sirhafizho/e2e-ai-sandbox`. Inspiration and license information are recorded in `docs/REFERENCES.md`; this repository is an independent implementation.
+
+## Demo
+
+Open `demo/index.html` for a portfolio-friendly deterministic workflow walkthrough. It is intentionally separate from the authoritative Python runtime.
