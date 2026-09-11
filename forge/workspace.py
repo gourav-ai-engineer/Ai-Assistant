@@ -4,7 +4,7 @@ import os
 import subprocess
 from pathlib import Path
 
-from .types import ToolCall, ToolResult
+from .types import ToolResult
 
 
 class Workspace:
@@ -70,4 +70,8 @@ class Workspace:
         except subprocess.TimeoutExpired:
             return ToolResult(False, "", "command timed out")
         output = (proc.stdout + proc.stderr).strip()
-        return ToolResult(proc.returncode == 0, output[-20_000:], metadata={"returncode": proc.returncode})
+        return ToolResult(
+            proc.returncode == 0,
+            output[-20_000:],
+            metadata={"returncode": proc.returncode},
+        )
