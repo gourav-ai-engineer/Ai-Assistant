@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import os
 from dataclasses import dataclass
 
@@ -18,7 +17,9 @@ class OpenAIPlanner:
         try:
             from openai import OpenAI
         except ImportError as exc:
-            raise RuntimeError("Install the optional 'openai' dependency to use model planning") from exc
+            raise RuntimeError(
+                "Install the optional 'openai' dependency to use model planning"
+            ) from exc
 
         api_key = os.environ.get("OPENAI_API_KEY")
         if not api_key:
