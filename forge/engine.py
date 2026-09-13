@@ -30,6 +30,20 @@ class ForgeEngine:
         RunStore(workspace.root / self.state_dir).save(report)
         return report
 
+    @staticmethod
+    def _validated_success(records: list[StepRecord]) -> bool:
+        """Treat an expected failing baseline as recoverable when a later validation passes."""
+        if not records:
+            return False
+        validations = [step for step in records if step.tool == "run_tests"]
+        if not validations or not validations[-1].ok:
+            return False
+        non_recoverable_failures = [
+            step for step in records
+            if not step.ok and step.tool != "run_tests"
+        ]
+        return not non_recoverable_failures
+
     def run(self, task: ForgeTask, *, allow_writes: bool | None = None) -> RunReport:
         if task.max_steps < 1 or task.max_steps > 100:
             raise ValueError("max_steps must be between 1 and 100")
@@ -82,8 +96,8 @@ class ForgeEngine:
             if len(records) < task.max_steps:
                 self._execute(registry, (ToolCall("run_tests", reason="Validate the reviewed change set."),), records, next_index)
 
-        ok = bool(records) and all(s.ok for s in records)
+        ok = self._validated_success(records)
+        summary = "Autonomous execution loop completed." if ok else "Agent execution needs another repair cycle."
         return self._finish(
             RunReport(task_id, RunStatus.SUCCEEDED if ok else RunStatus.FAILED,
-                      "Autonomous execution loop completed." if ok else "Agent execution needs another repair cycle.",
-                      tuple(records), started_at, RunReport.timestamp()), workspace)
+                      summary, tuple(records), started_at, RunReport.timestamp()), workspace)
