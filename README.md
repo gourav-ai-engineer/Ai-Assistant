@@ -6,24 +6,11 @@ Forge is a bounded autonomous software-engineering runtime that lets an AI inspe
 
 The deterministic Forge runtime is implemented and verified by GitHub Actions. Model-backed planning is implemented against the OpenAI Responses API as an optional provider. The public browser demo is a safe deterministic simulation and does not execute arbitrary visitor code.
 
+> **Status:** Production-oriented reference implementation. Run the local test suite and benchmark after cloning before treating any performance number as a measured result.
+
 ## Architecture
 
 `Task → Baseline Inspection → Planner → Tool Registry → Executor → Tests → Recovery → Diff Review → Final Report`
-
-Core modules:
-
-```text
-forge/
-├── analyzer.py      repository language/entry-point analysis
-├── engine.py        bounded autonomous execution loop
-├── planner.py       planner protocol + offline deterministic planner
-├── providers.py     optional OpenAI Responses API planner
-├── server.py        local read-only inspection HTTP API
-├── state.py         persistent run reports
-├── tools.py         typed and guarded tool registry
-├── types.py         task/report/tool data models
-└── workspace.py     repository boundary and safe file access
-```
 
 ## Capabilities
 
@@ -43,8 +30,6 @@ forge/
 - CI verification
 
 ## Run Forge locally
-
-Safe offline mode:
 
 ```bash
 python -m pip install -e ".[dev]"
@@ -76,10 +61,23 @@ The HTTP surface is intentionally read-only. Mutating operations remain in the C
 
 ```bash
 pytest -q
-ruff check forge tests forge_cli.py
+ruff check forge tests benchmarks forge_cli.py
 ```
 
-GitHub Actions additionally compiles the Forge package and runs both a Forge offline smoke test and the existing AI Assistant smoke test.
+GitHub Actions compiles the package, runs the test suite, executes the Forge offline smoke test, runs the deterministic runtime benchmark, and runs the existing AI Assistant smoke test.
+
+## Benchmark & measurable evidence
+
+Forge includes a reproducible benchmark under `benchmarks/`:
+
+```bash
+python benchmarks/run_benchmark.py
+python benchmarks/run_benchmark.py --json > benchmark-result.json
+```
+
+It measures deterministic execution success, unauthorized write/commit rejection, workspace path-boundary enforcement, credential filtering, and median runtime. The benchmark intentionally does **not** invent model-quality numbers.
+
+Only put benchmark percentages, latency numbers, or case counts on a resume after actually running the benchmark and retaining its result. This makes the claims reproducible and defensible in interviews.
 
 ## Security
 
