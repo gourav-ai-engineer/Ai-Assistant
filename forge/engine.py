@@ -18,6 +18,7 @@ class ForgeEngine:
     planner: Planner | None = None
     max_rounds: int = 3
     state_dir: str = ".forge/runs"
+    sandbox: bool = False
 
     def _execute(self, registry: ToolRegistry, calls: tuple[ToolCall, ...], records: list[StepRecord], offset: int) -> None:
         for index, call in enumerate(calls, start=offset):
@@ -54,7 +55,7 @@ class ForgeEngine:
         started_at = RunReport.timestamp()
         workspace = Workspace(task.repo_path)
         approved = task.require_approval_for_write is False if allow_writes is None else allow_writes
-        registry = ToolRegistry(workspace, allow_writes=approved)
+        registry = ToolRegistry(workspace, allow_writes=approved, sandbox=self.sandbox and approved)
         planner = self.planner or OfflinePlanner()
         records: list[StepRecord] = []
 
@@ -88,8 +89,6 @@ class ForgeEngine:
             if records and records[-1].tool == "run_tests" and records[-1].ok:
                 break
 
-        # Reviewer/finalizer guard: always inspect the final diff and re-run tests
-        # when the planner changed files or requested validation.
         if len(records) < task.max_steps and any(s.tool == "write_file" and s.ok for s in records):
             self._execute(registry, (ToolCall("git_diff", reason="Review the final change set."),), records, next_index)
             next_index = len(records) + 1
