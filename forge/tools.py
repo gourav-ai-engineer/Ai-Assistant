@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from .analyzer import analyze_repository
+from .sandbox import SandboxRunner
 from .types import ToolCall, ToolResult
 from .workspace import Workspace
 
@@ -18,9 +19,11 @@ WRITE_TOOLS = {"write_file", "git_commit"}
 
 
 class ToolRegistry:
-    def __init__(self, workspace: Workspace, *, allow_writes: bool = False) -> None:
+    def __init__(self, workspace: Workspace, *, allow_writes: bool = False, sandbox: bool = False) -> None:
         self.workspace = workspace
         self.allow_writes = allow_writes
+        self.sandbox = sandbox
+        self.sandbox_runner = SandboxRunner(workspace.root) if sandbox else None
 
     def execute(self, call: ToolCall) -> ToolResult:
         try:
@@ -93,9 +96,14 @@ class ToolRegistry:
 
     def _run_tests(self) -> ToolResult:
         if (self.workspace.root / "pyproject.toml").exists() or (self.workspace.root / "pytest.ini").exists():
-            return self.workspace.run(["python", "-m", "pytest", "-q"], timeout_seconds=180)
-        if (self.workspace.root / "package.json").exists():
-            return self.workspace.run(["npm", "test", "--", "--runInBand"], timeout_seconds=180)
-        if (self.workspace.root / "go.mod").exists():
-            return self.workspace.run(["go", "test", "./..."], timeout_seconds=180)
-        return ToolResult(True, "No supported test runner detected; inspection required.")
+            command = ["python", "-m", "pytest", "-q"]
+        elif (self.workspace.root / "package.json").exists():
+            command = ["npm", "test", "--", "--runInBand"]
+        elif (self.workspace.root / "go.mod").exists():
+            command = ["go", "test", "./..."]
+        else:
+            return ToolResult(True, "No supported test runner detected; inspection required.")
+
+        if self.sandbox_runner is not None:
+            return self.sandbox_runner.run(command, timeout_seconds=180)
+        return self.workspace.run(command, timeout_seconds=180)
