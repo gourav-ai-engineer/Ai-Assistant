@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import statistics
 import subprocess
 import tempfile
 import time
@@ -44,6 +43,12 @@ def run_case() -> tuple[bool, float, dict[str, object]]:
             "from calculator import add\n\ndef test_add():\n    assert add(2, 3) == 5\n",
             encoding="utf-8",
         )
+        # Pin test discovery so the intentionally broken fixture always fails the
+        # Forge baseline before the planner repairs it.
+        (root / "pyproject.toml").write_text(
+            "[tool.pytest.ini_options]\ntestpaths = [\"test_calculator.py\"]\n",
+            encoding="utf-8",
+        )
         subprocess.run(["git", "init", "-q", str(root)], check=True)
         subprocess.run(["git", "-C", str(root), "add", "."], check=True)
         subprocess.run(
@@ -52,6 +57,9 @@ def run_case() -> tuple[bool, float, dict[str, object]]:
             check=True,
         )
 
+        fixture_baseline = subprocess.run(
+            ["python", "-m", "pytest", "-q"], cwd=root, capture_output=True, text=True, check=False
+        )
         planner: Planner = DeterministicRepairPlanner()
         started = time.perf_counter()
         report = ForgeEngine(planner=planner, max_rounds=2).run(
@@ -71,7 +79,8 @@ def run_case() -> tuple[bool, float, dict[str, object]]:
         )
         test_steps = [step for step in report.steps if step.tool == "run_tests"]
         passed = (
-            report.status == "succeeded"
+            fixture_baseline.returncode != 0
+            and report.status == "succeeded"
             and "return a + b" in final_code
             and final_tests.returncode == 0
             and any(not step.ok for step in test_steps[:-1])
@@ -82,7 +91,8 @@ def run_case() -> tuple[bool, float, dict[str, object]]:
         detail = {
             "status": report.status,
             "steps": len(report.steps),
-            "initial_test_failed": bool(test_steps and not test_steps[0].ok),
+            "fixture_baseline_failed": fixture_baseline.returncode != 0,
+            "forge_baseline_failed": bool(test_steps and not test_steps[0].ok),
             "final_test_passed": bool(test_steps and test_steps[-1].ok),
             "write_executed": any(step.tool == "write_file" and step.ok for step in report.steps),
             "diff_reviewed": any(step.tool == "git_diff" and step.ok for step in report.steps),
