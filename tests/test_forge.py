@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from forge.engine import ForgeEngine
+from forge.github import parse_issue_url
 from forge.planner import JSONPlanner
 from forge.sandbox import SandboxRunner
 from forge.types import ForgeTask, RunStatus, ToolCall
@@ -53,3 +54,9 @@ def test_sandbox_reports_missing_docker(tmp_path: Path, monkeypatch: pytest.Monk
     result = SandboxRunner(tmp_path).run(["python", "-m", "pytest", "-q"])
     assert not result.ok
     assert "Docker CLI not found" in result.error
+
+
+def test_github_issue_url_parser() -> None:
+    assert parse_issue_url("https://github.com/acme/project/issues/42") == ("acme", "project", 42)
+    with pytest.raises(ValueError):
+        parse_issue_url("https://example.com/acme/project/issues/42")
