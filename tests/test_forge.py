@@ -6,6 +6,7 @@ import pytest
 
 from forge.engine import ForgeEngine
 from forge.planner import JSONPlanner
+from forge.sandbox import SandboxRunner
 from forge.types import ForgeTask, RunStatus, ToolCall
 from forge.workspace import Workspace
 
@@ -45,3 +46,10 @@ def test_unknown_tool_fails(tmp_path: Path) -> None:
 
     result = ToolRegistry(Workspace(tmp_path)).execute(ToolCall("nope"))
     assert not result.ok
+
+
+def test_sandbox_reports_missing_docker(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("forge.sandbox.shutil.which", lambda _: None)
+    result = SandboxRunner(tmp_path).run(["python", "-m", "pytest", "-q"])
+    assert not result.ok
+    assert "Docker CLI not found" in result.error
