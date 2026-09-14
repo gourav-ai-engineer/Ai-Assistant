@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "forge-autonomous-engineer"
-version = "0.1.1"
-description = "Autonomous software-engineering runtime with explicit workspace and tool boundaries"
+version = "0.2.0"
+description = "Bounded autonomous software-engineering runtime with guarded mutation, recovery, and sandboxed validation"
 requires-python = ">=3.11"
 dependencies = [
     "python-dotenv>=1.0,<2",
