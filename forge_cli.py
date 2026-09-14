@@ -15,6 +15,7 @@ def main() -> None:
     parser.add_argument("request", nargs="?", default="Inspect this repository and run its tests.")
     parser.add_argument("--repo", default=".", help="repository/workspace path")
     parser.add_argument("--allow-writes", action="store_true", help="allow write_file and git_commit tools")
+    parser.add_argument("--sandbox", action="store_true", help="run validation in a hardened Docker sandbox")
     parser.add_argument("--max-steps", type=int, default=16)
     parser.add_argument("--serve", action="store_true", help="start the local read-only HTTP API")
     parser.add_argument("--port", type=int, default=8787)
@@ -24,6 +25,8 @@ def main() -> None:
         parser.error("--max-steps must be between 1 and 100")
     if args.port < 1 or args.port > 65535:
         parser.error("--port must be 1-65535")
+    if args.sandbox and not args.allow_writes:
+        parser.error("--sandbox is intended for mutation-enabled agent runs; add --allow-writes")
 
     if args.serve:
         from forge.server import serve
@@ -32,7 +35,7 @@ def main() -> None:
         return
 
     planner = provider_from_env()
-    report = ForgeEngine(planner=planner).run(
+    report = ForgeEngine(planner=planner, sandbox=args.sandbox).run(
         ForgeTask(
             request=args.request,
             repo_path=str(Path(args.repo).resolve()),
@@ -52,6 +55,7 @@ def main() -> None:
         "started_at": report.started_at,
         "finished_at": report.finished_at,
         "model_planner": bool(planner),
+        "sandbox": args.sandbox,
     }
     print(json.dumps(payload, indent=2) if args.json else payload["summary"])
 
