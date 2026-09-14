@@ -16,6 +16,7 @@ const reportTask = document.querySelector('#report-task');
 const reportCalls = document.querySelector('#report-calls');
 const reportTime = document.querySelector('#report-time');
 const output = document.querySelector('#output');
+const validationOutput = document.querySelector('#validation-output');
 
 const flowSteps = [
   ['analyze', 'Repository analysis'],
@@ -67,10 +68,10 @@ async function runDemo() {
   const planner = plannerSelect.value;
   const started = performance.now();
   const stages = [
-    ['analyze', 'Repository analyzed', '95 files discovered · Python test runner detected'],
+    ['analyze', 'Repository analyzed', 'Repository inventory and validation entry points discovered'],
     ['plan', 'Execution plan generated', planner === 'offline' ? 'Deterministic bounded planner' : 'Model planner · tool policy enforced'],
-    ['execute', 'Tools executed', 'Read-only baseline · approval-gated mutations'],
-    ['validate', 'Validation completed', '11 tests passed · safety boundaries enforced'],
+    ['execute', 'Tools executed', 'Typed tools · approval-gated mutations'],
+    ['validate', 'Validation completed', 'Test execution · bounded recovery path'],
     ['review', 'Run persisted', 'Final report written to .forge/runs'],
   ];
 
@@ -91,7 +92,8 @@ async function runDemo() {
   reportTask.textContent = task;
   reportCalls.textContent = '4 baseline + bounded plan';
   reportTime.textContent = `${elapsed} ms demo trace`;
-  output.textContent = JSON.stringify({
+
+  const payload = {
     status: 'succeeded',
     planner,
     workflow: ['inspect', 'plan', 'execute', 'validate', 'review'],
@@ -99,10 +101,19 @@ async function runDemo() {
     write_gate: 'approval required',
     workspace_boundary: 'enforced',
     credential_filtering: 'enabled',
-  }, null, 2);
+    sandbox: 'available for authorized mutation runs',
+  };
+  output.textContent = JSON.stringify(payload, null, 2);
+  validationOutput.textContent = [
+    '✓ Workflow completed',
+    '✓ Validation stage reached',
+    '✓ Approval policy enforced',
+    '✓ Workspace boundary enforced',
+    '✓ Credentials filtered from child processes',
+    '✓ Persistent execution report produced',
+  ].join('\n');
 
-  setMetric('RUNNING', 'runtime-status');
-  document.querySelector('[data-metric="runtime-status"]').textContent = 'READY';
+  setMetric('READY', 'runtime-status');
   setMetric(String(state.runCount), 'runs');
   setMetric('PASS', 'validation');
 
@@ -122,6 +133,7 @@ function resetDemo() {
   reportCalls.textContent = '—';
   reportTime.textContent = '—';
   output.textContent = 'No run yet.';
+  validationOutput.textContent = 'No validation evidence yet.';
   activity.innerHTML = '<div class="activity-empty">Run Forge to see the execution trace.</div>';
   renderFlow();
 }
