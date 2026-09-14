@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 from forge.engine import ForgeEngine
+from forge.github import fetch_issue
 from forge.providers import provider_from_env
 from forge.types import ForgeTask
 
@@ -14,6 +15,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Forge — autonomous software engineer")
     parser.add_argument("request", nargs="?", default="Inspect this repository and run its tests.")
     parser.add_argument("--repo", default=".", help="repository/workspace path")
+    parser.add_argument("--issue", help="public GitHub issue URL to use as the task")
     parser.add_argument("--allow-writes", action="store_true", help="allow write_file and git_commit tools")
     parser.add_argument("--sandbox", action="store_true", help="run validation in a hardened Docker sandbox")
     parser.add_argument("--max-steps", type=int, default=16)
@@ -34,10 +36,19 @@ def main() -> None:
         serve(port=args.port)
         return
 
+    request = args.request
+    issue = None
+    if args.issue:
+        try:
+            issue = fetch_issue(args.issue)
+        except (ValueError, RuntimeError) as exc:
+            parser.error(str(exc))
+        request = issue.task_request
+
     planner = provider_from_env()
     report = ForgeEngine(planner=planner, sandbox=args.sandbox).run(
         ForgeTask(
-            request=args.request,
+            request=request,
             repo_path=str(Path(args.repo).resolve()),
             max_steps=args.max_steps,
             require_approval_for_write=not args.allow_writes,
@@ -48,6 +59,8 @@ def main() -> None:
         "task_id": report.task_id,
         "status": report.status,
         "summary": report.summary,
+        "issue": issue.url if issue else None,
+        "repository": f"{issue.owner}/{issue.repository}" if issue else None,
         "steps": [
             {"index": s.index, "tool": s.tool, "ok": s.ok, "output": s.output, "duration_ms": round(s.duration_ms, 2)}
             for s in report.steps
